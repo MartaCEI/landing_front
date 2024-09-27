@@ -17,10 +17,10 @@ const Home = () => {
     }, []);
 
     const fetchAllData = async () => {
+        const controller = new AbortController();
         try {
             const response = await fetch(`${URL}/home`);
             const objeto = await response.json();
-            console.log(objeto.data);
 
             if (objeto.status == "error") {
                 setUserError(`Tuvimos un error: ${objeto.msg}`)
@@ -29,7 +29,9 @@ const Home = () => {
             setData(objeto.data);
 
         } catch (error) {
-            console.log("Error al hacer el fetch de los corrreos:", error);
+            console.log("Error al hacer el fetch de los datos:", error);
+        } finally {
+            controller.abort();
         }
     }
 
