@@ -5,33 +5,40 @@ import Client from "../components/Client";
 import Aplication from "../components/Aplication";
 const URL = import.meta.env.VITE_API_URL;
 
-// Crear valor inicial (formularios) o imprimirlo si no existe (si muestra el valor en pantalla).
 const Home = () => {
     const [data, setData] = useState({
         clients:[],
         aplications:[]
     });
+    const [userError, setUserError] = useState(null);
 
     useEffect(() => {
-        fetchAllData();
+        const controller = new AbortController();
+        fetchAllData(controller.signal);
+
+        return () => {
+            controller.abort();
+        };
     }, []);
 
-    const fetchAllData = async () => {
-        const controller = new AbortController();
+    const fetchAllData = async (signal) => {
         try {
-            const response = await fetch(`${URL}/home`);
+            const response = await fetch(`${URL}/home`, { signal });
             const objeto = await response.json();
 
-            if (objeto.status == "error") {
-                setUserError(`Tuvimos un error: ${objeto.msg}`)
+            if (objeto.status === "error") {
+                setUserError(`Tuvimos un error: ${objeto.msg}`);
                 return;
-            } 
+            }
             setData(objeto.data);
 
         } catch (error) {
-            console.log("Error al hacer el fetch de los datos:", error);
+            if (error.name !== 'AbortError') {
+                console.log("Error al hacer el fetch de los datos:", error);
+                setUserError("Error al cargar los datos");
+            }
         } finally {
-            controller.abort();
+            setLoading(false);
         }
     }
 
